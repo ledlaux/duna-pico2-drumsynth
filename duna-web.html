@@ -148,41 +148,32 @@
         let sliderVal = parseInt(val);
         let outVal;
 
-        // 1. Engines 1-3 Models (1-5) -> MIDI 25, 45, 65, 85, 105
         if ([37, 47, 57].includes(ccNum)) {
             const modelMap = { 1: 25, 2: 45, 3: 65, 4: 85, 5: 105 };
             outVal = modelMap[sliderVal] || 25;
         } 
         
-        // 2. FM Bank (1-3) -> MIDI 115, 120, 127
         else if (ccNum === 77) {
             const bankMap = { 1: 116, 2: 120, 3: 127 };
             outVal = bankMap[sliderVal] || 116;
         }
         
-        // 3. FM Instrument (CC 70) -> Precise 32-step mapping
         else if (ccNum === 70) {
             outVal = Math.floor((sliderVal - 1) * (127 / 31));
         }
         
-        // 4. Samples (Select)
         else if (ccNum === 67) { 
             outVal = sliderVal; 
         }
 
-        // --- THE FIX IS HERE ---
-        // 5. Pitch Parameters (34, 44, 54, 74, 61) -> Full 0-127 Range
-        // This ensures 127 on the slider = 127 sent to hardware
         else if ([34, 44, 54, 74, 61].includes(ccNum)) {
             outVal = sliderVal;
         }
         
-        // 6. Other General Engine Params (Density, Harm, etc.) -> Keep 84/127 Scaling
         else if (ccNum >= 30 && ccNum <= 79) {
             outVal = Math.round(sliderVal * (84 / 127));
         } 
         
-        // 7. Global Logic (21-26)
         else {
             outVal = Math.min(127, Math.max(0, sliderVal));
         }
@@ -268,7 +259,6 @@
             }
         };
 
-        // Capture every slider and knob value
         document.querySelectorAll('.midi-slider').forEach(sl => {
             state.params[sl.dataset.cc] = sl.value;
         });
@@ -290,22 +280,18 @@
             try {
                 const data = JSON.parse(e.target.result);
                 
-                // 1. Restore BPM
                 if(data.bpm) updateBPM(data.bpm);
 
-                // 2. Restore All CC Parameters
                 for(let cc in data.params) {
                     const val = data.params[cc];
-                    sendCC(cc, val); // This updates MIDI + UI Label + Slider Value
+                    sendCC(cc, val); 
 
-                    // Special: Update Knob Rotation if it's a knob
                     const el = document.querySelector(`.midi-slider[data-cc="${cc}"]`);
                     if (el && el.classList.contains('knob')) {
                         el.style.setProperty('--rotation', (val / 127 * 270) - 135);
                     }
                 }
 
-                // 3. Restore XY Cursor Position
                 if(data.xy) {
                     const xPerc = (data.xy.x / 1.27);
                     const yPerc = 100 - (data.xy.y / 1.27);
