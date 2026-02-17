@@ -134,7 +134,7 @@
             // --- Instrument Range Setup (CC 70 for FM) ---
             let pMin = 0, pMax = 127, pVal = 64;
             if (isFM && p === "Instrument") { 
-                pMin = 1; pMax = 32; pVal = 1; 
+                pMin = 1; pMax = 32; pVal = 10; 
             }
 
             h += `<div class="param"><div class="param-info"><label>${p}</label><span class="val-out" id="v${cc}">${pVal}</span></div>
