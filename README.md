@@ -3,7 +3,7 @@
 Raspberry Pi PICO2 drum synthesizer based on Mutable Instruments **Plaits** (Macro-Oscillator)  
 and **Grids** (Topographic Drum Sequencer).
 
-![DUNA-web](images/duna_web.jpg)
+![DUNA-web](images/duna-web.jpg)
 
 ---
 
