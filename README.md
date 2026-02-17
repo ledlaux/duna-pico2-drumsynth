@@ -39,12 +39,14 @@ The **X** and **Y** parameters serve as a 2D coordinate system for DUNA’s algo
 
 ---
 
-## Hardware 
+##  Hardware
 
+- **Controller:** RP2350 (Raspberry Pi Pico 2)  
 - **I2S DAC:** PCM5102  
-- **Controller:** RP2350  
-- **MIDI:** USB-MIDI  
-
+  - **Data Pin (DIN):** GPIO 9  
+  - **Bit Clock (BCLK):** GPIO 10  
+  - **LRCK (Word Select):** GPIO 11 (Standard I2S sequence)  
+- **MIDI:** USB-MIDI 
 ---
 
 ## Compilation Settings (Recommended)
