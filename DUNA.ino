@@ -104,7 +104,7 @@ void __not_in_flash_func(handle_midi_packet)(uint8_t* packet) {
             case 21: safe_map_x.store(d2); break;
             case 22: safe_map_y.store(d2); break;
             case 23: safe_randomness.store(d2); break;
-            case 24: safe_mode.store(d2<64?0:1); break;
+            case 24: safe_mode.store(d2==0?0:1); break;
             case 25: safe_vel_rand.store(d2); break;
             case 26: safe_swing.store(d2); break;
             case 60: safe_volumes[4].store(fval); break;
