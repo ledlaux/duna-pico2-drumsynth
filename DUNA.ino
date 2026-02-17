@@ -5,7 +5,7 @@
   and Grids (Topographic Drum Sequencer).
 
   Features:
-  - 4 x Plaits-based drum engines (Engines 1-3 + FM Engine with syx banks)
+  - 4 x MI Plaits drum engines (Engines 1-3 + FM Engine with syx banks)
   - 1 x Sample-based Percussion Engine
   - Algorithmic Sequencing: Integrated Euclidean and Topographic (Grids) logic
   - WebUI dashboard with midi cc controls 
