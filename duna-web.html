@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DUNA-PICO2</title>
+    <style>
+        :root {
+            --bg: #0a0a0c; --panel: #16161d; --accent: #00d4ff;
+            --warn: #ffaa00; --text: #e0e0e0; --border: #333; --fm: #d400ff;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        
+        .utility-header { 
+            width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center;
+            background: #111; padding: 10px 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px;
+        }
+        .container { width: 100%; max-width: 1400px; display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+        .main-engine { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+        .card { background: var(--panel); border-radius: 12px; border: 1px solid var(--border); padding: 18px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .card-header { font-size: 11px; font-weight: bold; letter-spacing: 2px; color: var(--accent); margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 8px; text-transform: uppercase; }
+        
+        .group { display: flex; align-items: center; gap: 12px; }
+        
+        .xy-pad { 
+            width: 100%; height: 300px; background: #000; border-radius: 8px; position: relative; 
+            cursor: crosshair; border: 1px solid #444; overflow: hidden; 
+        }
+        .xy-pad::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.1); z-index: 1; }
+        .xy-pad::after { content: ""; position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: rgba(255,255,255,0.1); z-index: 1; }
+
+        .xy-cursor { position: absolute; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; box-shadow: 0 0 15px var(--accent); z-index: 10; }
+        .xy-label { position: absolute; font-size: 9px; color: #666; pointer-events: none; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; z-index: 5; }
+        
+        .led { width: 12px; height: 12px; border-radius: 50%; background: #222; border: 1px solid #444; transition: background 0.05s; }
+        .led-on { background: #44ff44 !important; box-shadow: 0 0 18px #44ff44; }
+        
+        .param { margin-bottom: 10px; width: 100%; }
+        .param-info { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .val-out { font-size: 11px; color: var(--accent); font-family: monospace; font-weight: bold; background: #000; padding: 1px 4px; border-radius: 3px; }
+        label { font-size: 9px; color: #888; text-transform: uppercase; }
+        input[type=range] { width: 100%; accent-color: var(--accent); height: 6px; cursor: pointer; }
+        input[type=range]:disabled { opacity: 0.2; cursor: not-allowed; }
+        
+        button { background: #222; border: 1px solid #444; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-prime { background: var(--accent); color: #000; border: none; }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="utility-header">
+    <div class="group">
+        <div id="sync-led" class="led"></div>
+        <select id="midi-in" style="background:none; border:none; color:#888; font-size:11px; outline:none;">
+            <option value="none">INTERNAL CLOCK</option>
+        </select>
+        <button onclick="downloadPreset()" class="btn-prime">EXPORT</button>
+        <button onclick="document.getElementById('importFile').click()">LOAD</button>
+        <input type="file" id="importFile" accept=".json" onchange="uploadPreset(event)">
+    </div>
+
+    <div class="group">
+        <button id="tap-btn" onclick="tapTempo()">TAP</button>
+        <span id="bpm-text" style="color:var(--accent); font-family:monospace; font-size:20px; font-weight:bold; width:45px;">120</span>
+        <input type="range" min="40" max="240" value="120" id="bpm-slider" style="width:100px">
+        <button onclick="togglePlay()" id="play-btn">▶ PLAY</button>
+    </div>
+
+    <div class="group">
+        <select id="midi-out" style="background:none; border:none; color:var(--accent); font-weight:bold; outline:none;"></select>
+    </div>
+</div>
+
+<div class="container">
+    <div class="main-engine" id="engine-mount"></div>
+    <div class="sidebar">
+        <div class="card">
+            <div class="card-header">Drum Map</div>
+            <div class="xy-pad" id="pad">
+                <div id="cursor" class="xy-cursor" style="left:50%; top:50%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:15px; font-family:monospace; font-size:11px;">
+                <span>X: <span id="v21">64</span></span><span>Y: <span id="v22">64</span></span>
+            </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <div class="param"><div class="param-info"><label>Chaos</label><span class="val-out" id="v23">0</span></div><input type="range" min="0" max="127" value="0" class="midi-slider" data-cc="23"></div>
+            <div class="param"><div class="param-info"><label>Master Volume</label><span class="val-out" id="v8">100</span></div><input type="range" min="0" max="127" value="100" class="midi-slider" data-cc="8"></div>
+            <div class="param"><div class="param-info"><label>Grids / Euclid</label><span class="val-out" id="v24">0</span></div><input type="range" min="0" max="1" value="0" class="midi-slider" data-cc="24"></div>
+            <div class="param"><div class="param-info"><label>Random Velocity</label><span class="val-out" id="v25">0</span></div><input type="range" min="0" max="127" value="0" class="midi-slider" data-cc="25"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let midiOut = null, midiIn = null, bpm = 120, stableBpm = 120, isPlaying = false, clockTimer = null;
+    let pulseCounter = 0, beatStartTime = 0, tapTimes = [];
+    
+    const engines = [
+        { name: "Engine 1", vol: 36, model: 37, params: ["Harm", "Timb", "Morph", "Pitch", "Density"], baseCC: 30, denCC: 35, pitchCC: 34, color: "var(--accent)" },
+        { name: "Engine 2", vol: 46, model: 47, params: ["Harm", "Timb", "Morph", "Pitch", "Density"], baseCC: 40, denCC: 45, pitchCC: 44, color: "var(--accent)" },
+        { name: "Engine 3", vol: 56, model: 57, params: ["Harm", "Timb", "Morph", "Pitch", "Density"], baseCC: 50, denCC: 55, pitchCC: 54, color: "var(--accent)" },
+        { name: "FM Engine", vol: 76, model: 77, params: ["Instrument", "Timb", "Morph", "Pitch", "Density"], baseCC: 70, denCC: 75, pitchCC: 74, color: "var(--fm)" },
+        { name: "Samples", vol: 60, model: 67, params: ["Pitch", "Density"], pCCs: [61, 62], color: "var(--warn)" }
+    ];
+
+    const mount = document.getElementById('engine-mount');
+    engines.forEach(eng => {
+        let isFM = (eng.name === "FM Engine");
+        let modelLabel = (eng.name === "Samples") ? "Select" : (isFM ? "Bank" : "Model");
+        
+        // --- Model/Bank Range Setup ---
+        let modelMin = 0, modelMax = 127, modelStart = 64;
+        if ([37, 47, 57].includes(eng.model)) { modelMin = 1; modelMax = 5; modelStart = 1; } 
+        else if (eng.model === 77) { modelMin = 1; modelMax = 3; modelStart = 1; }
+
+        let h = `<div class="card" style="border-top:3px solid ${eng.color}">
+            <div class="card-header" style="color:${eng.color}">${eng.name}</div>
+            <div class="param"><div class="param-info"><label>Volume</label><span class="val-out" id="v${eng.vol}">64</span></div><input type="range" min="0" max="127" value="64" class="midi-slider" data-cc="${eng.vol}"></div>
+            <div class="param"><div class="param-info"><label>${modelLabel}</label><span class="val-out" id="v${eng.model}">${modelStart}</span></div>
+            <input type="range" min="${modelMin}" max="${modelMax}" value="${modelStart}" class="midi-slider" data-cc="${eng.model}"></div>
+            <hr style="border:0; border-top:1px solid #222; margin:10px 0;">`;
+        
+        eng.params.forEach((p, i) => {
+            let cc = (eng.name === "Samples") ? eng.pCCs[i] : (p === "Density" ? eng.denCC : (p === "Pitch" ? eng.pitchCC : (eng.baseCC + i)));
+            
+            // --- Instrument Range Setup (CC 70 for FM) ---
+            let pMin = 0, pMax = 127, pVal = 64;
+            if (isFM && p === "Instrument") { 
+                pMin = 1; pMax = 32; pVal = 1; 
+            }
+
+            h += `<div class="param"><div class="param-info"><label>${p}</label><span class="val-out" id="v${cc}">${pVal}</span></div>
+                  <input type="range" min="${pMin}" max="${pMax}" value="${pVal}" class="midi-slider" data-cc="${cc}"></div>`;
+        });
+        mount.innerHTML += h + `</div>`;
+    });
+
+   function sendCC(cc, val, skipUI = false) {
+        let ccNum = parseInt(cc);
+        let sliderVal = parseInt(val);
+        let outVal;
+
+        // 1. Engines 1-3 Models (1-5) -> MIDI 25, 45, 65, 85, 105
+        if ([37, 47, 57].includes(ccNum)) {
+            const modelMap = { 1: 25, 2: 45, 3: 65, 4: 85, 5: 105 };
+            outVal = modelMap[sliderVal] || 25;
+        } 
+        
+        // 2. FM Bank (1-3) -> MIDI 115, 120, 127
+        else if (ccNum === 77) {
+            const bankMap = { 1: 116, 2: 120, 3: 127 };
+            outVal = bankMap[sliderVal] || 116;
+        }
+        
+        // 3. FM Instrument (CC 70) -> Precise 32-step mapping
+        else if (ccNum === 70) {
+            outVal = Math.floor((sliderVal - 1) * (127 / 31));
+        }
+        
+        // 4. Samples (Select)
+        else if (ccNum === 67) { 
+            outVal = sliderVal; 
+        }
+
+        // --- THE FIX IS HERE ---
+        // 5. Pitch Parameters (34, 44, 54, 74, 61) -> Full 0-127 Range
+        // This ensures 127 on the slider = 127 sent to hardware
+        else if ([34, 44, 54, 74, 61].includes(ccNum)) {
+            outVal = sliderVal;
+        }
+        
+        // 6. Other General Engine Params (Density, Harm, etc.) -> Keep 84/127 Scaling
+        else if (ccNum >= 30 && ccNum <= 79) {
+            outVal = Math.round(sliderVal * (84 / 127));
+        } 
+        
+        // 7. Global Logic (21-26)
+        else {
+            outVal = Math.min(127, Math.max(0, sliderVal));
+        }
+
+        if(midiOut) midiOut.send([0xB0, ccNum, outVal]);
+        
+        const d = document.getElementById(`v${cc}`); 
+        if(d) d.innerText = sliderVal; 
+        
+        if(!skipUI) { 
+            const s = document.querySelector(`.midi-slider[data-cc="${cc}"]`); 
+            if(s) s.value = sliderVal; 
+        }
+    }
+
+    document.addEventListener('input', (e) => {
+        if(e.target.classList.contains('midi-slider')) sendCC(e.target.dataset.cc, e.target.value, true);
+    });
+
+    function onIn(e) {
+        if (e.data[0] === 0xF8) {
+            if(midiOut) midiOut.send([0xF8]);
+            const now = performance.now();
+            pulseCounter++;
+            if (pulseCounter >= 24) { 
+                flashLED();
+                if (beatStartTime > 0) {
+                    const beatDuration = now - beatStartTime;
+                    const detectedBpm = Math.round(60000 / beatDuration);
+                    if (Math.abs(detectedBpm - stableBpm) > 1) {
+                        stableBpm = detectedBpm; bpm = stableBpm;
+                        document.getElementById('bpm-text').innerText = bpm;
+                        document.getElementById('bpm-slider').value = bpm;
+                    }
+                }
+                beatStartTime = now; pulseCounter = 0;
+            }
+        }
+        if (e.data[0] === 0xFA || e.data[0] === 0xFB) { pulseCounter = 0; beatStartTime = performance.now(); }
+    }
+
+    function flashLED() {
+        const led = document.getElementById('sync-led');
+        led.classList.add('led-on'); setTimeout(() => led.classList.remove('led-on'), 50);
+    }
+
+    function updateBPM(val) {
+        bpm = Math.round(val); stableBpm = bpm; 
+        document.getElementById('bpm-text').innerText = bpm;
+        document.getElementById('bpm-slider').value = bpm;
+        if(isPlaying && document.getElementById('midi-in').value === 'none') startInternalClock();
+    }
+
+    function togglePlay() {
+        isPlaying = !isPlaying;
+        const b = document.getElementById('play-btn');
+        if(isPlaying) {
+            b.innerText = "■ STOP"; b.style.color = "red";
+            if(midiOut) midiOut.send([0xFA]);
+            if(document.getElementById('midi-in').value === 'none') startInternalClock();
+        } else {
+            b.innerText = "▶ PLAY"; b.style.color = "white";
+            if(midiOut) midiOut.send([0xFC]); clearInterval(clockTimer);
+        }
+    }
+
+    function startInternalClock() {
+        clearInterval(clockTimer);
+        let p = 0;
+        clockTimer = setInterval(() => {
+            if(midiOut) midiOut.send([0xF8]);
+            if(++p >= 24) { flashLED(); p = 0; }
+        }, (60000/bpm)/24);
+    }
+
+    function downloadPreset() {
+        const state = {
+            params: {},
+            bpm: bpm,
+            xy: {
+                x: document.getElementById('v21').innerText,
+                y: document.getElementById('v22').innerText
+            }
+        };
+
+        // Capture every slider and knob value
+        document.querySelectorAll('.midi-slider').forEach(sl => {
+            state.params[sl.dataset.cc] = sl.value;
+        });
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `nexus_preset_${Date.now()}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function uploadPreset(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                // 1. Restore BPM
+                if(data.bpm) updateBPM(data.bpm);
+
+                // 2. Restore All CC Parameters
+                for(let cc in data.params) {
+                    const val = data.params[cc];
+                    sendCC(cc, val); // This updates MIDI + UI Label + Slider Value
+
+                    // Special: Update Knob Rotation if it's a knob
+                    const el = document.querySelector(`.midi-slider[data-cc="${cc}"]`);
+                    if (el && el.classList.contains('knob')) {
+                        el.style.setProperty('--rotation', (val / 127 * 270) - 135);
+                    }
+                }
+
+                // 3. Restore XY Cursor Position
+                if(data.xy) {
+                    const xPerc = (data.xy.x / 1.27);
+                    const yPerc = 100 - (data.xy.y / 1.27);
+                    const cursor = document.getElementById('cursor');
+                    cursor.style.left = xPerc + '%';
+                    cursor.style.top = yPerc + '%';
+                }
+            } catch (err) {
+                console.error("Error parsing preset:", err);
+                alert("Failed to load preset: Invalid File.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    navigator.requestMIDIAccess({ sysex: true }).then(m => {
+        const iS = document.getElementById('midi-in'), oS = document.getElementById('midi-out');
+        const bS = document.getElementById('bpm-slider'), tB = document.getElementById('tap-btn');
+        const updatePorts = () => {
+            const currentIn = iS.value, currentOut = oS.value;
+            iS.innerHTML = '<option value="none">INTERNAL CLOCK</option>'; oS.innerHTML = '';
+            m.inputs.forEach(i => iS.add(new Option(i.name, i.id)));
+            m.outputs.forEach(o => oS.add(new Option(o.name, o.id)));
+            iS.value = currentIn; oS.value = currentOut;
+        };
+        updatePorts();
+        m.onstatechange = updatePorts;
+        iS.onchange = () => { 
+            if(midiIn) midiIn.onmidimessage=null; 
+            midiIn=m.inputs.get(iS.value); 
+            if(midiIn) {
+                midiIn.onmidimessage=onIn;
+                bS.disabled = true; tB.disabled = true;
+            } else {
+                bS.disabled = false; tB.disabled = false;
+            }
+        };
+        oS.onchange = () => midiOut = m.outputs.get(oS.value);
+    });
+
+    const pad = document.getElementById('pad'), cursor = document.getElementById('cursor');
+    pad.addEventListener('mousedown', handleXY);
+    pad.addEventListener('mousemove', (e) => e.buttons === 1 && handleXY(e));
+    function handleXY(e) {
+        const b = pad.getBoundingClientRect();
+        let x = Math.max(0, Math.min(1, (e.clientX-b.left)/b.width)), y = Math.max(0, Math.min(1, (e.clientY-b.top)/b.height));
+        cursor.style.left = (x*100)+'%'; cursor.style.top = (y*100)+'%';
+        sendCC(21, x*127); sendCC(22, (1-y)*127);
+    }
+    document.getElementById('bpm-slider').oninput = (e) => updateBPM(e.target.value);
+    function tapTempo() {
+        const now = performance.now(); tapTimes.push(now);
+        if (tapTimes.length > 4) tapTimes.shift();
+        if (tapTimes.length > 1) updateBPM(60000 / ((tapTimes[tapTimes.length-1] - tapTimes[0]) / (tapTimes.length - 1)));
+    }
+</script>
+</body>
+</html>
