@@ -5,7 +5,7 @@ and **Grids** (Topographic Drum Sequencer).
 
 This is first test version with 3 drum engines, 1 FM engine bank with 32 instruments and 1 sample loaded. More dx7 syx drum banks and samples will be added in future.   
 
-FM and Sample engines are controlled always by Euclidian sequencer. Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode.
+FM and Sample engines are always controlled by Euclidian sequencer. Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode.
 
 ![DUNA-web](images/duna-web.jpg)
 
@@ -18,6 +18,24 @@ FM and Sample engines are controlled always by Euclidian sequencer. Engines 1–
 - Algorithmic Sequencing: Integrated Euclidean and Topographic (Grids) logic  
 - High-Resolution UI: Web-based MIDI Dashboard with XY Mapping
 - Export / Load presets in webui
+
+---
+
+## X/Y Navigation
+
+The **X** and **Y** parameters serve as a 2D coordinate system for DUNA’s algorithmic sequencer. Their function changes based on the mode:
+
+## Grids Mode (Topographic)
+- **X** and **Y** navigate a 2D "map" of drum patterns.  
+- Moving the axes morphs between different rhythmic styles and structural variations.
+
+## Euclidean Mode (Mathematical)
+- **X** selects the Loop Length (4, 5, 7, 8, 11, 16, 24, 32 steps).  
+- **Y** sets the Rotation (shifting the starting beat/phase).
+
+## Chaos Factor
+- The **Randomness** control adds "jitter" to these X/Y coordinates,  
+  causing the sequence to drift or glitch for an ever-evolving feel.
 
 ---
 
