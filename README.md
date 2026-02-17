@@ -35,6 +35,41 @@ and **Grids** (Topographic Drum Sequencer).
 
 ---
 
+## MIDI CC Assignments
+
+| Engine         | CC         | Parameter             |
+|----------------|------------|----------------------|
+| Global         | 8          | Master Volume        |
+| Global         | 17         | Clock Divider        |
+| Global         | 21         | XY Pad X             |
+| Global         | 22         | XY Pad Y             |
+| Global         | 23         | Chaos                |
+| Global         | 24         | Grids / Euclid       |
+| Global         | 25         | Random Velocity      |
+| Engines 1–3    | 30 / 40 / 50 | Harmonics           |
+| Engines 1–3    | 31 / 41 / 51 | Timbre              |
+| Engines 1–3    | 32 / 42 / 52 | Morph               |
+| Engines 1–3    | 33 / 43 / 53 | Decay               |
+| Engines 1–3    | 34 / 44 / 54 | Pitch               |
+| Engines 1–3    | 35 / 45 / 55 | Density             |
+| Engines 1–3    | 36 / 46 / 56 | Volume              |
+| Engines 1–3    | 37 / 47 / 57 | Model               |
+| FM Engine      | 70         | Instrument          |
+| FM Engine      | 71         | Timbre              |
+| FM Engine      | 72         | Morph               |
+| FM Engine      | 73         | Decay               |
+| FM Engine      | 74         | Pitch               |
+| FM Engine      | 75         | Density             |
+| FM Engine      | 76         | Volume              |
+| FM Engine      | 77         | Bank                |
+| Sample Engine  | 60         | Volume              |
+| Sample Engine  | 61         | Pitch               |
+| Sample Engine  | 62         | Density             |
+| Sample Engine  | 67         | Select              |
+
+---
+
+
 ## Credits
 
 - **PLAITS & GRIDS original DSP:** Émilie Gillet (Mutable Instruments), MIT license  
