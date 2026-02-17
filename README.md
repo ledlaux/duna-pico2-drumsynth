@@ -39,7 +39,7 @@ The **X** and **Y** parameters serve as a 2D coordinate system for DUNA’s algo
 
 ---
 
-## Hardware Mapping
+## Hardware 
 
 - **I2S DAC:** PCM5102  
 - **Controller:** RP2350  
