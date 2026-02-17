@@ -5,7 +5,6 @@ and **Grids** (Topographic Drum Sequencer).
 
 This is first test version with 3 drum engines, 1 FM engine bank with 32 instruments and 1 sample loaded. More dx7 syx drum banks and samples will be added in future.   
 
-Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode. FM and Sample engines are always controlled by Euclidian sequencer.
 
 ![DUNA-web](images/duna-web.jpg)
 
@@ -20,23 +19,32 @@ Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer m
 - Export / Load presets in webui
 
 ---
+## Sequencer Overview
 
-## X/Y Navigation
+- **Engines 0–2** can operate in **Grids** or **Euclidean** mode.
+- **FM and Sample engines (3–4)** are **always driven by the Euclidean sequencer**.
+  - When **Grids mode (mode 0)** is active, **X/Y has no effect on engines 3–4** and 
+    pattern length is fixed to 16 steps.
 
-The **X** and **Y** parameters serve as a 2D coordinate system for DUNA’s algorithmic sequencer. Their function changes based on the mode:
+## X / Y Control
 
-## Grids Mode (Topographic)
-- **X** and **Y** navigate a 2D "map" of drum patterns.  
-- Moving the axes morphs between different rhythmic styles and structural variations.
+**X** and **Y** form a 2D control space for the algorithmic sequencer.  
+Their behavior depends on the active sequencer mode.
 
-## Euclidean Mode (Mathematical)
-- **X** selects the Loop Length (4, 5, 7, 8, 11, 16, 24, 32 steps).  
-- **Y** sets the Rotation (shifting the starting beat/phase).
+### Grids Mode
 
-## Chaos Factor
-- The **Randomness** control adds "jitter" to these X/Y coordinates,  
-  causing the sequence to drift or glitch for an ever-evolving feel.
+- **X/Y** navigate a 2D pattern map.
+- Movement morphs **hit probability and rhythmic structure**.
 
+### Euclidean Mode
+
+- **X** — loop length *(4, 5, 7, 8, 11, 16, 24, 32)*  
+- **Y** — rotation (pattern phase shift)
+
+## Chaos
+
+- **Randomness** introduces controlled instability.
+- Adds variation by probabilistically shifting hits.
 ---
 
 ##  Hardware
