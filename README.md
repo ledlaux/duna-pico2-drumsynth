@@ -5,7 +5,7 @@ and **Grids** (Topographic Drum Sequencer).
 
 This is first test version with 3 drum engines, 1 FM engine bank with 32 instruments and 1 sample loaded. More dx7 syx drum banks and samples will be added in future.   
 
-FM and Sample engines are always controlled by Euclidian sequencer. Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode.
+Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode. FM and Sample engines are always controlled by Euclidian sequencer.
 
 ![DUNA-web](images/duna-web.jpg)
 
