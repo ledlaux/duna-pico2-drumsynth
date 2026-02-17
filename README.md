@@ -56,18 +56,18 @@ FM and Sample engines are controlled always by Euclidian sequencer. Engines 1–
 | Engines 1–3    | 35 / 45 / 55 | Density             |
 | Engines 1–3    | 36 / 46 / 56 | Volume              |
 | Engines 1–3    | 37 / 47 / 57 | Model               |
-| FM Engine      | 70         | Instrument          |
-| FM Engine      | 71         | Timbre              |
-| FM Engine      | 72         | Morph               |
-| FM Engine      | 73         | Decay               |
-| FM Engine      | 74         | Pitch               |
-| FM Engine      | 75         | Density             |
-| FM Engine      | 76         | Volume              |
-| FM Engine      | 77         | Bank                |
-| Sample Engine  | 60         | Volume              |
-| Sample Engine  | 61         | Pitch               |
-| Sample Engine  | 62         | Density             |
-| Sample Engine  | 67         | Select              |
+| FM       | 70         | Instrument          |
+| FM      | 71         | Timbre              |
+| FM      | 72         | Morph               |
+| FM       | 73         | Decay               |
+| FM      | 74         | Pitch               |
+| FM       | 75         | Density             |
+| FM       | 76         | Volume              |
+| FM      | 77         | Bank                |
+| Sample   | 60         | Volume              |
+| Sample  | 61         | Pitch               |
+| Sample   | 62         | Density             |
+| Sample   | 67         | Select              |
 
 ---
 
