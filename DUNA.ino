@@ -8,7 +8,7 @@
   - 4 x Plaits-based drum engines (Engines 1-3 + FM Engine with 3 banks)
   - 1 x Sample-based Percussion Engine
   - Algorithmic Sequencing: Integrated Euclidean and Topographic (Grids) logic
-  - High-Resolution UI: Web-based MIDI Dashboard with XY Mapping
+  - WebUI dashboard with midi cc controls 
   
   Hardware Mapping:
   - I2S DAC: PCM5102 
