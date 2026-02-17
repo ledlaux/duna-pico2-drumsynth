@@ -36,7 +36,7 @@ and **Grids** (Topographic Drum Sequencer).
 ## Credits
 
 - **PLAITS & GRIDS original DSP:** Émilie Gillet (Mutable Instruments), MIT license  
-- **PLAITS & STMLIB Arduino port:** Mark Washeim, MIT license  
+- **PLAITS & STMLIB Arduino port:** [arduinoMI](https://github.com/poetaster/arduinoMI), Mark Washeim, MIT license
 
 ---
 
