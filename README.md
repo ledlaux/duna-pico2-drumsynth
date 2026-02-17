@@ -12,7 +12,8 @@ and **Grids** (Topographic Drum Sequencer).
 - 4 x Plaits-based drum engines (Engines 1-3 + FM Engine with 3 banks)  
 - 1 x Sample-based Percussion Engine  
 - Algorithmic Sequencing: Integrated Euclidean and Topographic (Grids) logic  
-- High-Resolution UI: Web-based MIDI Dashboard with XY Mapping  
+- High-Resolution UI: Web-based MIDI Dashboard with XY Mapping
+- Export / Load presets in webui
 
 ---
 
@@ -27,7 +28,7 @@ and **Grids** (Topographic Drum Sequencer).
 ## Compilation Settings (Recommended)
 
 - **RP2350 Clock:** 300 MHz (Overclock)  
-- **Optimization:** Default or high optimization flags  
+- **Optimization:** Optimize Even More (-O3)  
 - **USB Stack:** Adafruit TinyUSB  
 
 ---
