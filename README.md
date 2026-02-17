@@ -3,7 +3,9 @@
 Raspberry Pi PICO2 drum synthesizer based on Mutable Instruments **Plaits** (Macro-Oscillator)  
 and **Grids** (Topographic Drum Sequencer).
 
+This is first test version with 3 drum engines, 1 FM engine bank with 32 instruments and 1 sample loaded. More dx7 syx drum banks and samples will be added in future.   
 
+FM and Sample engines are controlled always by Euclidian sequencer. Engines 1–3, depending on the selector, play in Grids or Euclidean sequencer mode.
 
 ![DUNA-web](images/duna-web.jpg)
 
