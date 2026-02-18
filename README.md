@@ -12,11 +12,11 @@ This is first test version with 3 drum engines, 1 FM engine bank with 32 instrum
 
 ## Features
 
-- 4 x Plaits-based drum engines (Engines 1-3 + FM Engine with 32 instrument .syx bank)  
-- 1 x Sample-based Percussion Engine  
-- Algorithmic Sequencing: Integrated Euclidean and Topographic (Grids) logic  
-- High-Resolution UI: Web-based MIDI Dashboard with XY Mapping
-- Export / Load presets in webui
+- 4× Plaits-based drum engines (Engines 1–3 + FM Engine with 32-instrument `.syx` bank)  
+- 1× Sample-based percussion engine  
+- Algorithmic sequencing: integrated Euclidean and topographic (Grids) logic  
+- JS + HTML WebUI dashboard for real-time control  
+- Preset export / load directly from WebUI using JSON
 
 ---
 ## Sequencer Overview
