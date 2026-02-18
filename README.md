@@ -22,26 +22,25 @@ This is first test version with 3 drum engines, 1 FM engine bank with 32 instrum
 ## Sequencer Overview
 
 - **Engines 0–2** can operate in **Grids** or **Euclidean** mode.
-- **FM and Sample engines (3–4)** are **always driven by the Euclidean sequencer**.
-  - When **Grids mode (mode 0)** is active, **X/Y has no effect on engines 3–4** and 
-    pattern length is fixed to 16 steps.
+- **FM and Sample engines (3–4)** are always driven by the Euclidean sequencer.
+ 
+### X / Y Control
 
-## X / Y Control
-
-**X** and **Y** form a 2D control space for the algorithmic sequencer.  
-Their behavior depends on the active sequencer mode.
+Set position in the **Grids drum map**.
+Behavior depends on the active sequencer mode.
 
 ### Grids Mode
 
 - **X/Y** navigate a 2D pattern map.
 - Movement morphs **hit probability and rhythmic structure**.
+- Has no effect on engines 3–4 (pattern length is fixed to 16 steps).
 
 ### Euclidean Mode
 
 - **X** — loop length *(4, 5, 7, 8, 11, 16, 24, 32)*  
 - **Y** — rotation (pattern phase shift)
 
-## Chaos
+### Chaos
 
 - **Randomness** introduces controlled instability.
 - Adds variation by probabilistically shifting hits.
