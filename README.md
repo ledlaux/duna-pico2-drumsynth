@@ -20,7 +20,7 @@ This is first test version with 3 drum engines, 1 FM engine bank with 32 instrum
 ---
 ## Sequencer Overview
 
-- **Engines 0–2** can operate in **Grids** or **Euclidean** mode.
+- **Engines 1–3** can operate in **Grids** or **Euclidean** mode.
 - **FM and Sample engines (3–4)** are always driven by the Euclidean sequencer.
  
 ### X / Y Control
