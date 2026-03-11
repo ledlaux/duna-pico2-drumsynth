@@ -1,7 +1,6 @@
 # DUNA
 
-Raspberry Pi PICO2 drum synthesizer based on Mutable Instruments **Plaits** (Macro-Oscillator)  
-and **Grids** (Topographic Drum Sequencer).
+Raspberry Pi PICO2 drum synthesizer based on Mutable Instruments **Plaits** (Macro-Oscillator) and **Grids** (Topographic Drum Sequencer).
 
 This is first test version with 3 drum engines, 1 FM engine bank with 32 instruments and 1 sample loaded. More dx7 syx drum banks and samples will be added in future.   
 
