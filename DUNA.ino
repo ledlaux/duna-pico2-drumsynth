@@ -1,5 +1,5 @@
 /*
-  DUNA -
+  DUNA (multicore version)-
   
   Raspberry PI PICO2 drum synthesizer based on Mutable Instruments Plaits (Macro-Oscillator) 
   and Grids (Topographic Drum Sequencer).
@@ -26,8 +26,8 @@
   
 
   This project is licensed under the MIT License.
-*/
 
+*/
 
 #include <Arduino.h>
 #include <I2S.h>
@@ -56,6 +56,7 @@ std::atomic<int> safe_clock_div{1};
 std::atomic<int> safe_euclid_shift{0}, safe_euclid_skip{0}, safe_euclid_add{0};
 std::atomic<int> safe_vel_rand{0}, safe_swing{0};
 std::atomic<bool> sample_trig_pending{false};
+
 float sample_playhead = -1.0f;
 float masterVolume = 0.8f;
 
@@ -95,7 +96,6 @@ void __not_in_flash_func(handle_midi_packet)(uint8_t* packet) {
     
     if ((status & 0xF0) == 0xB0) { 
         switch(d1) {
-
             case 8:  masterVolume = fval; break;
             case 17: safe_clock_div.store(map(d2,0,127,1,8)); break;
             case 18: safe_euclid_shift.store(d2); break;
@@ -135,103 +135,119 @@ void __not_in_flash_func(handle_midi_packet)(uint8_t* packet) {
 }
 
 void __not_in_flash_func(do_sequencer_step)(int step_num) {
-    int mode  = safe_mode.load();        // 0 = Grids, 1 = Euclid
-    bool use_xy = (mode == 1);
-
+    int mode  = safe_mode.load();
     int chaos = safe_randomness.load();
     int v_amt = safe_vel_rand.load();
     int local_step = step_num & 31;
-
     static const uint8_t euclid_lengths[] = {4, 5, 7, 8, 11, 16, 24, 32};
 
     for (int inst = 0; inst < 5; inst++) {
         bool hit = false;
         float base_vel = 0.6f;
-
         if (mode == 1 || inst >= 3) {
-
-            int len = euclid_lengths[
-    use_xy ? (safe_map_x.load() >> 4) : 5
-];
-
-            int pulses =
-                max(1, (safe_density[inst].load() * len) / 127);
-
-            int phase =
-    use_xy ? ((safe_map_y.load() * len) >> 7) : 0;
+            int len = euclid_lengths[(safe_map_x.load() >> 4) & 7];
+            int pulses = max(1, (safe_density[inst].load() * len) / 127);
+            int phase = ((safe_map_y.load() * len) >> 7);
             int step  = (local_step + phase) % len;
-
-            bool euclid_hit = euclidean_step_calc(step, len, pulses);
-
+            hit = euclidean_step_calc(step, len, pulses);
             if (chaos > 0) {
-                uint8_t r = fast_rand() & 0x7F;
-
-                if (euclid_hit && r < chaos) {
-                    euclid_hit = false;              
-                } else if (!euclid_hit && r < (chaos >> 2)) {
-                    euclid_hit = true;               
-                }
+                if (hit && (fast_rand() & 0x7F) < chaos) hit = false;
+                else if (!hit && (fast_rand() & 0x7F) < (chaos >> 2)) hit = true;
             }
-
-            hit = euclid_hit;
-        }
-
-        else {
+        } else {
             int gx = constrain(safe_map_x.load() >> 5, 0, 3);
             int gy = constrain(safe_map_y.load() >> 5, 0, 3);
-
-            uint8_t val =
-                drum_map[gx][gy][(inst * 32) + local_step];
-
-            int chaos_jitter =
-                chaos ? ((int)(fast_rand() % chaos) - (chaos >> 1)) : 0;
-
-            if ((int)val + chaos_jitter >
-                (255 - (safe_density[inst].load() * 2))) {
+            uint8_t val = drum_map[gx][gy][(inst * 32) + local_step];
+            if ((int)val + (chaos ? ((int)(fast_rand() % chaos) - (chaos >> 1)) : 0) > (255 - (safe_density[inst].load() * 2))) {
                 hit = true;
                 base_vel = val / 255.0f;
             }
         }
-
         if (hit) {
-            if (inst == 4) {
-                sample_trig_pending.store(true);
-            } else {
-                float v_noise =
-                    v_amt ? (((fast_rand() % 200) / 100.0f - 1.0f) *
-                             (v_amt * 0.004f)) : 0.0f;
-
-                float final_vel =
-                    constrain(base_vel + v_noise, 0.1f, 1.0f);
-
-                vel_shared[inst].store(final_vel);
+            if (inst == 4) sample_trig_pending.store(true);
+            else {
+                float v_noise = v_amt ? (((fast_rand() % 200) / 100.0f - 1.0f) * (v_amt * 0.004f)) : 0.0f;
+                vel_shared[inst].store(constrain(base_vel + v_noise, 0.1f, 1.0f));
                 trig_ready[inst].store(true);
             }
         }
     }
 }
 
-void setup(){
-
+// --- CORE 0: SEQUENCER & MIDI ---
+void setup() {
     TinyUSBDevice.setManufacturerDescriptor("LEDLAUX");
     TinyUSBDevice.setProductDescriptor("DUNA-PICO2");
-    TinyUSBDevice.setSerialDescriptor("RP2350-01");
     usb_midi.begin();
 
+    for(int i=0;i<4;i++){
+        safe_density[i].store(80); 
+        safe_volumes[i].store(0.6f); 
+        safe_pitches[i].store(36.0f+(i*12.0f));
+    }
+    safe_density[4].store(64); 
+    safe_volumes[4].store(0.8f); 
+    safe_pitches[4].store(1.0f);
+}
+
+void loop() {
+    static int current_step=0, div_counter=0;
+    static uint32_t execute_step_at=0;
+    static bool step_pending=false;
+
+    uint32_t now = millis();
+    if(step_pending && now>=execute_step_at){
+        do_sequencer_step(current_step);
+        current_step=(current_step+1)%32;
+        step_pending=false;
+    }
+
+    uint8_t packet[4];
+    if(usb_midi.readPacket(packet)){
+        uint8_t status=packet[1];
+        if(status==0xF8){ 
+            int ticks = clock_ticks.load()+1;
+            if(ticks>=6){
+                ticks=0;
+                div_counter++;
+                if(div_counter>=safe_clock_div.load()){
+                    div_counter=0;
+                    if(running.load()){
+                        int swing=safe_swing.load();
+                        if(current_step%2!=0 && swing>0){
+                            execute_step_at=now+map(swing,0,127,0,50);
+                            step_pending=true;
+                        } else {
+                            do_sequencer_step(current_step);
+                            current_step=(current_step+1)%32;
+                        }
+                    }
+                }
+            }
+            clock_ticks.store(ticks);
+        } 
+        else if(status==0xFA){ running.store(true); current_step=0; }
+        else if(status==0xFC){ running.store(false); }
+        else handle_midi_packet(packet);
+    }
+}
+
+// --- CORE 1: DSP & AUDIO ---
+void setup1() {
     i2s.setFrequency(SAMPLE_RATE);
-    i2s.setDATA(I2S_DATA_PIN); i2s.setBCLK(I2S_BCLK_PIN); i2s.begin();
+    i2s.setDATA(I2S_DATA_PIN); 
+    i2s.setBCLK(I2S_BCLK_PIN); 
+    i2s.begin();
 
     for(int i=0;i<4;i++){
         stmlib::BufferAllocator alloc(workspaces[i], sizeof(workspaces[i]));
         voices[i].voice.Init(&alloc);
         voices[i].mod.trigger_patched = true;
         voices[i].mod.level_patched = true;
-        safe_density[i].store(80); safe_volumes[i].store(0.6f); safe_pitches[i].store(36.0f+(i*12.0f));
     }
-    safe_density[4].store(64); safe_volumes[4].store(0.8f); safe_pitches[4].store(1.0f);
 }
 
-void loop(){
+void loop1() {
     for(int i=0;i<4;i++){
         voices[i].patch.engine = engine_shared[i].load();
         voices[i].patch.note = safe_pitches[i].load();
@@ -254,7 +270,7 @@ void loop(){
     for(int s=0;s<AUDIO_BLOCK;s++){
         float mixed=0.0f;
         for(int i=0;i<4;i++)
-            mixed += (voices[i].buffer[s].out/32768.0f) * safe_volumes[i].load() * 2.5f; // FM boost
+            mixed += (voices[i].buffer[s].out/32768.0f) * safe_volumes[i].load() * 2.5f;
 
         if(sample_playhead>=0 && (uint32_t)sample_playhead<SAMPLE_LEN-1){
             uint32_t idx=(uint32_t)sample_playhead;
@@ -265,44 +281,5 @@ void loop(){
         float finalGain = masterVolume * 0.6f * 32767.0f;
         int16_t outS = (int16_t)constrain(mixed * finalGain, -32768, 32767);
         i2s.write16(outS,outS);
-    }
-
-    static int current_step=0, div_counter=0;
-    static uint32_t execute_step_at=0;
-    static bool step_pending=false;
-
-    uint32_t now = millis();
-    if(step_pending && now>=execute_step_at){
-        do_sequencer_step(current_step);
-        current_step=(current_step+1)%32;
-        step_pending=false;
-    }
-
-    uint8_t packet[4];
-    if(usb_midi.readPacket(packet)){
-        uint8_t status=packet[1];
-        if(status==0xF8){ // clock
-            int ticks = clock_ticks.load()+1;
-            if(ticks>=6){
-                ticks=0;
-                div_counter++;
-                if(div_counter>=safe_clock_div.load()){
-                    div_counter=0;
-                    if(running.load()){
-                        int swing=safe_swing.load();
-                        if(current_step%2!=0 && swing>0){
-                            execute_step_at=now+map(swing,0,127,0,50);
-                            step_pending=true;
-                        } else {
-                            do_sequencer_step(current_step);
-                            current_step=(current_step+1)%32;
-                        }
-                    }
-                }
-            }
-            clock_ticks.store(ticks);
-        } else if(status==0xFA){ running.store(true); current_step=0; }
-        else if(status==0xFC){ running.store(false); }
-        else handle_midi_packet(packet);
     }
 }
