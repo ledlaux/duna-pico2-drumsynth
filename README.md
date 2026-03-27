@@ -1,4 +1,4 @@
-# DUNA
+# DUNA (in development)
 
 Raspberry Pi PICO2 drum synthesizer based on Mutable Instruments **Plaits** (Macro-Oscillator) and **Grids** (Topographic Drum Sequencer).
 
